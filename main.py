@@ -1,7 +1,11 @@
 from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
 from app.router import auth
-from app.core.db import create_all_tables
+from app.router import pacients
+from app.router import exams
+from app.core.db import create_all_tables, engine
+from sqlmodel import Session, select
+from app.models.exam import ExamType
 
 app = FastAPI()
 
@@ -23,8 +27,27 @@ app.add_middleware(
 @app.on_event("startup")
 def on_startup():
     create_all_tables()
+    initialize_exam_types()
+
+def initialize_exam_types():
+    exam_types = [
+        "Seriologia",
+        "Quimica Sanguinea",
+        "Estudios de Coagulacion",
+        "Analisis de Heces",
+        "Analisis de Orina",
+        "Hematologia"
+    ]
+    with Session(engine) as session:
+        for name in exam_types:
+            existing = session.exec(select(ExamType).where(ExamType.name == name)).first()
+            if not existing:
+                session.add(ExamType(name=name))
+        session.commit()
 
 app.include_router(auth.router, prefix="/api/v1")
+app.include_router(pacients.router, prefix="/api/v1")
+app.include_router(exams.router, prefix="/api/v1")
 
 @app.get("/")
 async def read_root():

@@ -24,7 +24,8 @@ async def register(user_data: UserCreate, session: SessionDep):
     new_user = User(
         username=user_data.username,
         email=user_data.email,
-        password=hash_password(user_data.password)
+        password=hash_password(user_data.password),
+        role=user_data.role
     )
 
     # Agregar a la sesión y commit
@@ -33,7 +34,7 @@ async def register(user_data: UserCreate, session: SessionDep):
     session.refresh(new_user)  # Para obtener el id generado
 
     # Retornar el usuario sin la contraseña
-    return UserRead(id=new_user.id, username=new_user.username, email=new_user.email)
+    return UserRead(id=new_user.id, username=new_user.username, email=new_user.email, role=new_user.role)
 
 @router.post('/login', response_model=UserRead, tags=["auth"])
 async def login(data: UserLogin, session: SessionDep):
@@ -46,4 +47,4 @@ async def login(data: UserLogin, session: SessionDep):
     if not verify_password(data.password, user.password):
         raise HTTPException(status_code=401, detail="Credenciales inválidas")
 
-    return UserRead(id=user.id, username=user.username, email=user.email)
+    return UserRead(id=user.id, username=user.username, email=user.email, role=user.role)

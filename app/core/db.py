@@ -5,6 +5,8 @@ from typing import Annotated
 import os
 
 from app.models.user import User  # Importar el modelo
+from app.models.pacient import Pacient
+from app.models.exam import Exam, ExamType
 
 load_dotenv()
 
